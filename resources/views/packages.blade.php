@@ -35,11 +35,10 @@
 
         .nav-links li a {
             color: #ffffff;
-            font-weight: 500;
         }
 
         .nav-links li a.active {
-            color: #4da6ff;
+            color: #f0f0f0ff;
         }
 
         .nav-icons a {
@@ -48,7 +47,7 @@
         }
 
         .shop-hero {
-            padding: 40px;
+            padding: 20px 40px 40px 40px;
             text-align: center;
         }
 
@@ -57,25 +56,29 @@
             margin-bottom: 30px;
         }
 
-        .service-cards {
+        .service-cards,
+        .api-service-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 25px;
         }
 
-        .shop-card {
-            background: rgba(255, 255, 255, 0.05);
+        .shop-card,
+        .api-card {
+            background: rgba(255,255,255,0.05);
             border-radius: 12px;
             overflow: hidden;
             backdrop-filter: blur(10px);
             transition: 0.3s;
         }
 
-        .shop-card:hover {
+        .shop-card:hover,
+        .api-card:hover {
             transform: translateY(-5px);
         }
 
-        .shop-card img {
+        .shop-card img,
+        .api-card img {
             width: 100%;
             height: 200px;
             object-fit: cover;
@@ -86,17 +89,17 @@
             font-weight: bold;
             padding: 10px;
             text-align: center;
-            color: #ffffff;
         }
 
-        .card-content {
+        .card-content,
+        .api-card-content {
             padding: 10px;
             text-align: center;
         }
 
-        .card-content p {
+        .card-content p,
+        .api-card-content p {
             margin: 5px 0;
-            color: #ffffff;
         }
 
         .add-btn {
@@ -114,12 +117,32 @@
             border: none;
             padding: 10px 18px;
             border-radius: 8px;
-            cursor: not-allowed;
+        }
+
+        .api-section {
+            padding: 40px;
+        }
+
+        .api-title {
+            font-size: 30px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .api-price {
+            color: #4da6ff;
+            font-weight: bold;
+        }
+
+        .api-duration {
+            color: #ccc;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
 
+<!-- NAVBAR -->
 <nav class="navbar">
     <div class="logo">
         <a href="{{ url('/#home') }}">AUTOTECH</a>
@@ -134,13 +157,14 @@
     </ul>
 
     <div class="nav-icons">
-        <a href="{{ url('/register') }}" title="Account">👤</a>
-        <a href="{{ url('/cart') }}" title="Cart">
+        <a href="{{ route('account') }}">👤</a>
+        <a href="{{ route('cart') }}">
             🛒 <span id="cart-count">{{ collect(session('cart', []))->sum('quantity') }}</span>
         </a>
     </div>
 </nav>
 
+<!-- PACKAGES -->
 <section class="shop-hero">
     <h1 class="shop-title">Packages</h1>
 
@@ -160,30 +184,72 @@
                     </div>
                 </a>
 
-                <div style="padding-bottom: 15px; text-align: center;">
+                <div style="padding-bottom:15px; text-align:center;">
                     @if($product->stock > 0)
-                        <form action="{{ route('cart.add.ajax') }}" method="POST" class="ajax-add-to-cart">
+                        <form action="{{ route('cart.add.ajax') }}" method="POST" class="add-to-cart-form">
                             @csrf
                             <input type="hidden" name="type" value="product">
                             <input type="hidden" name="id" value="{{ $product->id }}">
-                            <button type="submit" class="add-btn">
-                                Add to Cart
-                            </button>
+                            <button type="submit" class="add-btn">Add to Cart</button>
                         </form>
                     @else
-                        <button type="button" disabled class="disabled-btn">
-                            Out of Stock
-                        </button>
+                        <button class="disabled-btn" disabled>Out of Stock</button>
                     @endif
                 </div>
 
             </div>
         @empty
-            <p style="width:100%; text-align:center;">No packages available.</p>
+            <p>No packages available.</p>
         @endforelse
     </div>
 </section>
 
+<!-- API SECTION -->
+<section class="api-section">
+    <h2 class="api-title">Services Loaded from API</h2>
+    <div id="api-services" class="api-service-cards"></div>
+</section>
+
+<!-- SCRIPTS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="{{ asset('js/cart.js') }}"></script>
+
+<script>
+$(document).ready(function () {
+
+    $.ajax({
+        url: "{{ url('/api/services') }}",
+        type: "GET",
+        success: function (data) {
+
+            let html = '';
+
+            data.forEach(function(service) {
+                html += `
+                    <div class="api-card">
+                        <img src="/${service.image}" alt="${service.name}">
+                        <div class="card-label">${service.name}</div>
+
+                        <div class="api-card-content">
+                            <p>${service.description}</p>
+                            <p class="api-price">Rs ${service.price}</p>
+                            <p class="api-duration">Duration: ${service.duration_minutes} mins</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            $('#api-services').html(html);
+        },
+
+        error: function () {
+            $('#api-services').html('<p style="color:red; text-align:center;">Error loading services</p>');
+        }
+
+    });
+
+});
+</script>
+
 </body>
 </html>

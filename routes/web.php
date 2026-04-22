@@ -41,7 +41,18 @@ Route::get('/login', function () {
 })->name('login');
 
 Route::view('/account', 'account')->name('account');
-Route::view('/register', 'register')->name('register');
+
+/*
+|--------------------------------------------------------------------------
+| Register Route Fix
+|--------------------------------------------------------------------------
+| You are using account.blade.php for both login and register.
+| So /register should also load the account page.
+*/
+Route::get('/register', function () {
+    return view('account');
+})->name('register');
+
 Route::view('/cart', 'cart')->name('cart');
 
 Route::get('/reviews', [ReviewController::class, 'index'])->name('reviews');
